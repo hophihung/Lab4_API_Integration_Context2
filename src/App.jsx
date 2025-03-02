@@ -1,17 +1,35 @@
-import React from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import LoginPage from "./pages/LoginPage"; // Kiểm tra đường dẫn import đúng chưa
-import Signup from "./pages/Signup"; // Nếu có trang đăng ký
 
-const App = () => {
+import { createContext, useEffect, useState } from 'react'
+import './App.css'
+import AllRoutes from './routes/AllRoutes'
+import { userApi } from './api/userApi';
+import { instance } from './api/axiosCilents';
+export const userContext = createContext();
+
+function App() {
+  const [tokenAuth, setTokenAuth] = useState('');
+  const [dataUser, setDataUser] = useState({});
+  const token = (token) => {
+    setTokenAuth(token);
+  }
+  const fetchApi = async () => {
+    try {
+      const result = await userApi.getInforUser();
+      console.log(result);
+      setDataUser(result);
+    } catch (error) {
+      console.log(error);
+    }
+  }
+  useEffect(() => {
+    instance.defaults.headers.Authorization = tokenAuth ? `Bearer ${tokenAuth}` : ''; 
+    fetchApi();
+  }, [tokenAuth])
   return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<LoginPage />} />
-        <Route path="/Signup" element={<Signup />} />
-      </Routes>
-    </Router>
-  );
-};
+    <userContext.Provider value={{token, tokenAuth, dataUser}}>
+      <AllRoutes />
+    </userContext.Provider>
+  )
+}
 
-export default App;
+export default App
